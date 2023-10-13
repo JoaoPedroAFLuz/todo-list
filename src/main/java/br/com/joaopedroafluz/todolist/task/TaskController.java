@@ -4,12 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,11 +17,18 @@ public class TaskController {
     @Autowired
     private ITaskRepository taskRepository;
 
+    @GetMapping
+    public List<TaskModel> findAll(HttpServletRequest request) {
+        final var userId = (UUID) request.getAttribute("userId");
+
+        return this.taskRepository.findAllByUserId(userId);
+    }
+
     @PostMapping
     public ResponseEntity create(@RequestBody TaskModel task, HttpServletRequest request) {
-        final var userId = request.getAttribute("userId");
+        final var userId = (UUID)  request.getAttribute("userId");
 
-        task.setUserId((UUID) userId);
+        task.setUserId(userId);
 
         if (task.getStartAt().isAfter(task.getEndAt()) || task.getStartAt().isEqual(task.getEndAt())) {
             return ResponseEntity
