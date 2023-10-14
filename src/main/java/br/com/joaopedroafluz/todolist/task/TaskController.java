@@ -27,7 +27,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity create(@RequestBody TaskModel task, HttpServletRequest request) {
-        final var userId = (UUID)  request.getAttribute("userId");
+        final var userId = (UUID) request.getAttribute("userId");
 
         task.setUserId(userId);
 
@@ -52,7 +52,7 @@ public class TaskController {
 
     @PutMapping("/{id}")
     public ResponseEntity update(@PathVariable UUID id, @RequestBody TaskModel taskModel, HttpServletRequest request) {
-        final var userId = (UUID)  request.getAttribute("userId");
+        final var userId = (UUID) request.getAttribute("userId");
 
         taskModel.setUserId(userId);
         taskModel.setId(id);
