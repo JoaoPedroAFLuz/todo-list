@@ -57,15 +57,23 @@ public class TaskController {
         taskModel.setUserId(userId);
         taskModel.setId(id);
 
-        final var task = this.taskRepository.findById(id);
+        final var task = this.taskRepository.findById(id).orElse(null);
 
-        if (task.isEmpty()) {
+        if (task == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body("Tarefa não encontrada");
         }
 
-        if (task.get().getStartAt().isAfter(task.get().getEndAt()) || task.get().getStartAt().isEqual(task.get().getEndAt())) {
+        final var isTaskBelongingToUser = task.getUserId().equals(userId);
+
+        if (!isTaskBelongingToUser) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("Tarefa não pertence ao usuário");
+        }
+
+        if (task.getStartAt().isAfter(task.getEndAt()) || task.getStartAt().isEqual(task.getEndAt())) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body("O fim da tarefa deve ser após o início da tarefa");
@@ -73,17 +81,15 @@ public class TaskController {
 
         final var now = LocalDateTime.now();
 
-        if (now.isAfter(task.get().getStartAt()) || now.isAfter(task.get().getEndAt())) {
+        if (now.isAfter(task.getStartAt()) || now.isAfter(task.getEndAt())) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body("As datas e horas de início e do fim da tarefa devem ser maior que a data e hora atual");
         }
 
+        Utils.copyNonNullProperties(taskModel, task);
 
-
-        Utils.copyNonNullProperties(taskModel, task.get());
-
-        var taskUpdated = this.taskRepository.save(task.get());
+        var taskUpdated = this.taskRepository.save(task);
 
         return ResponseEntity.status(HttpStatus.OK).body(taskUpdated);
     }
